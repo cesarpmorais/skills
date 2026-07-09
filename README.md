@@ -38,9 +38,11 @@ e só carregam quando o agent precisa.
 ## Skills
 
 - **find-skills** — descobrir e instalar skills do ecossistema aberto (`npx skills`).
+- **interviews** — antes de um build não-trivial, entrevista você para travar as decisões que mudam a arquitetura.
 
 ## Princípios
 
+- **Tudo em português.** Toda skill deste repo é escrita em PT-BR (frontmatter e corpo).
 - **A description é o que dispara a skill.** Escreva o quê / quando / quando NÃO usar.
 - **Enxuto.** Objetivos e restrições, não um passo-a-passo que engessa o agent.
 - **Escrita por humano.** O draft pode nascer de uma conversa, mas quem decide o conteúdo
