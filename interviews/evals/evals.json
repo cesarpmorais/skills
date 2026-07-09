@@ -1,6 +1,6 @@
 {
   "skill": "interviews",
-  "notes": "Trigger-heavy preference skill. The main risk is over-triggering, so half the cases are negative. Checks are regex over the run transcript: positives must ask several questions AND touch architecture vocabulary; negatives must NOT open an architecture interview. Trigger detection via stdout is approximate — see README.md for a trace-based alternative per harness.",
+  "notes": "Trigger-heavy preference skill. The main risk is over-triggering, so half the cases are negative. Primary signal where it is strong is a 'files' check on the isolated workspace: an interview writes NO files (workspace_clean), a build DOES. Regex over the transcript (question count + architecture vocabulary) corroborates. Where the filesystem is ambiguous (edits/fixes in an empty workspace have nothing to change), only regex is used. See README.md.",
   "arch_vocab": "reference only: (arquitetura|architecture|fonte da verdade|source of truth|escala|scale|estado|state|fronteira|boundar|síncrono|assíncrono|async|offline|modelo de dados|data model|trade)",
   "cases": [
     {
@@ -8,6 +8,7 @@
       "prompt": "Me ajuda a construir um app de controle de finanças pessoais.",
       "should_trigger": true,
       "checks": [
+        { "type": "files", "workspace_clean": true, "description": "entrevistou em vez de escrever código (workspace limpo)" },
         { "pattern": "\\?", "min": 3, "description": "faz várias perguntas antes de construir" },
         { "pattern": "arquitetura|architecture|fonte da verdade|source of truth|escala|scale|estado|state|fronteira|boundar|s[íi]ncrono|ass[íi]ncrono|async|offline|modelo de dados|data model|trade", "flags": "i", "min": 1, "description": "toca em decisão de arquitetura" }
       ]
@@ -17,6 +18,7 @@
       "prompt": "Como eu devo estruturar um sistema de notificações pro nosso backend?",
       "should_trigger": true,
       "checks": [
+        { "type": "files", "workspace_clean": true, "description": "entrevistou em vez de propor código pronto (workspace limpo)" },
         { "pattern": "\\?", "min": 3, "description": "entrevista antes de propor" },
         { "pattern": "arquitetura|architecture|escala|scale|estado|state|fronteira|boundar|s[íi]ncrono|ass[íi]ncrono|async|fila|queue|push|trade", "flags": "i", "min": 1, "description": "toca em decisão de design" }
       ]
@@ -26,6 +28,7 @@
       "prompt": "Preciso adicionar autenticação no app.",
       "should_trigger": true,
       "checks": [
+        { "type": "files", "workspace_clean": true, "description": "entrevistou em vez de implementar auth (workspace limpo)" },
         { "pattern": "\\?", "min": 3, "description": "pergunta antes (JWT vs sessão, provider, etc.)" },
         { "pattern": "arquitetura|architecture|sess(ã|a)o|session|jwt|token|provider|oauth|estado|state|fronteira|boundar|trade", "flags": "i", "min": 1, "description": "toca nas bifurcações de auth" }
       ]
@@ -35,6 +38,7 @@
       "prompt": "Quero refatorar o módulo de pagamentos pra suportar múltiplos gateways.",
       "should_trigger": true,
       "checks": [
+        { "type": "files", "workspace_clean": true, "description": "entrevistou em vez de sair refatorando (workspace limpo)" },
         { "pattern": "\\?", "min": 3, "description": "entrevista sobre o refactor" },
         { "pattern": "arquitetura|architecture|abstra|interface|fronteira|boundar|estado|state|migra|s[íi]ncrono|ass[íi]ncrono|async|trade", "flags": "i", "min": 1, "description": "toca nas decisões que mudam o design" }
       ]
@@ -70,6 +74,7 @@
       "prompt": "Constrói um endpoint GET /health que retorna 200 e {\"status\":\"ok\"}. Já está definido, só faz — não me pergunta nada.",
       "should_trigger": false,
       "checks": [
+        { "type": "files", "workspace_clean": false, "description": "construiu o endpoint em vez de entrevistar (workspace sujo)" },
         { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "respeita 'só faz, não pergunta'" },
         { "pattern": "\\?", "max": 1, "description": "não abre lote de perguntas" }
       ]

@@ -26,26 +26,40 @@ Must run in a terminal where the harness CLI is on PATH.
 
 ## What the checks mean
 
-- **Positive cases** (`should_trigger: true`): the transcript must contain several
-  questions (`\?` ≥ 3) **and** architecture vocabulary. That is the signature of the
-  skill firing — an opening batch of design questions instead of diving into code.
-- **Negative cases** (`should_trigger: false`): the transcript must **not** open an
-  architecture interview (architecture vocab negated, question count capped).
+Two layers. Each trial runs in a fresh, empty temp workspace.
 
-## Known limitation
+**1. Filesystem (`type: "files"`) — the deterministic layer.**
+Interviewing writes nothing; building writes files. So:
 
-Trigger detection here reads the **final stdout**, not the tool trace — it infers
-"the skill fired" from interview-shaped behavior. That is cheap and cross-harness but
-approximate: a model could ask architecture questions without the skill loading, or
-load it and phrase things unusually.
+- `{"type": "files", "workspace_clean": true}` — positives must leave the workspace
+  empty (the agent asked, it did not code).
+- `{"type": "files", "workspace_clean": false}` — `neg-just-build` must produce the
+  endpoint file (it was told to just build).
+- `{"type": "files", "exists": "path"}` — assert one exact artifact.
 
-For a deterministic signal, add a trace-based check per harness where the trace
-exposes skill invocations, e.g. Claude Code:
+Hidden files/dirs are ignored (so a harness dropping `.claude/` scratch does not read
+as dirty); pass `"include_hidden": true` to count them.
+
+**2. Regex over the transcript — the corroborating layer.**
+Positives ask several questions (`\?` ≥ 3) **and** hit architecture vocabulary.
+Negatives must **not** open an architecture interview (vocab negated, question count
+capped). `min` defaults to 1, but to 0 when only `max` is set (so "at most one
+question" passes on zero questions).
+
+Where the filesystem is ambiguous — a typo fix or rename in an *empty* workspace has
+nothing to change, so a well-behaved agent writes nothing either way — those negative
+cases rely on regex alone.
+
+## Going further: trace-based trigger detection
+
+The filesystem layer proves *behavior*, not that the skill file loaded. For a signal
+that the skill itself fired, parse the harness trace where it exposes invocations —
+e.g. Claude Code:
 
 ```bash
 claude -p '<prompt>' --output-format stream-json --verbose
 # then grep the trace for the skill being loaded / the Skill tool call
 ```
 
-Keep the regex behavior checks as the portable baseline; layer trace checks on top
-where a given harness supports them.
+Add that as an extra check per harness that supports it; keep the files + regex layers
+as the portable baseline.
