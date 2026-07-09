@@ -1,0 +1,64 @@
+name: Skill evals
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/evals/evals.json"
+      - "**/SKILL.md"
+      - "run_evals.py"
+      - ".github/workflows/evals.yml"
+  pull_request:
+    paths:
+      - "**/evals/evals.json"
+      - "**/SKILL.md"
+      - "run_evals.py"
+      - ".github/workflows/evals.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: skill-evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Headless auth for `claude -p` — no interactive /login needed.
+      # Add this as a repo secret: Settings -> Secrets and variables -> Actions.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run evals for every skill that has an eval set
+        run: |
+          set -e
+          status=0
+          for evals_json in */evals/evals.json; do
+            skill="$(dirname "$(dirname "$evals_json")")"
+            echo "::group::evals — $skill"
+            # Default harness (Haiku) from run_evals.py; override with --model if needed.
+            python3 run_evals.py "$skill" || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: "*/evals/results/**"
+          if-no-files-found: ignore

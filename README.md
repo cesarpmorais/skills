@@ -52,6 +52,17 @@ Se o harness quebra (não logado, crash, timeout) o caso é marcado **ERRORED**,
 pass/fail — ferramenta quebrada não vira resultado. Cada skill guarda seu `evals/evals.json`
 ao lado do `SKILL.md`.
 
+## CI
+
+`.github/workflows/evals.yml` roda `run_evals.py` (Haiku, default) pra toda skill que
+tiver `evals/evals.json`, em todo push/PR que toque `evals.json`, `SKILL.md` ou o próprio
+runner. Precisa de um secret no repo:
+
+- **Settings → Secrets and variables → Actions → New repository secret**
+- Nome: `ANTHROPIC_API_KEY` — usado pelo `claude` CLI em modo headless (sem `/login` interativo)
+
+Resultados de cada run ficam disponíveis como artifact do workflow.
+
 ## Skills
 
 - **find-skills** — descobrir e instalar skills do ecossistema aberto (`npx skills`).
