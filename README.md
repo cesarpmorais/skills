@@ -14,8 +14,9 @@ Cursor, and dozens of other coding agents.
 
 ## How agents use this repo
 
-Each agent reads skills from its own directory. Instead of copying files, I point a
-symlink here — this repo stays the single copy and every agent sees the same thing:
+Each agent reads skills from its own directory. Instead of copying files, point a
+symlink at wherever you clone this repo — it stays the single copy and every agent
+sees the same thing. Example (my own machine clones it to `~/code/skills`):
 
 ```bash
 # Claude Code

@@ -6,9 +6,15 @@ description: Helps users discover and install agent skills when they ask questio
 # Find Skills
 
 This skill helps you discover skills from the open agent skills ecosystem and install
-them into **this repo** (`~/code/skills`) — the source of truth symlinked into every
-agent's skills directory. A skill only "counts" as installed once it lives here, not
-in an agent's own scattered global skills folder.
+them into **this repo** — the source of truth symlinked into every agent's skills
+directory. A skill only "counts" as installed once it lives here, not in an agent's
+own scattered global skills folder.
+
+**Resolving this repo's root:** don't hardcode a path — it can be cloned anywhere.
+This file lives at `<repo-root>/find-skills/SKILL.md`, so the repo root is one level
+up from the directory you loaded this file from. (If you loaded it through a symlink,
+e.g. `~/.claude/skills/find-skills/SKILL.md`, resolve the symlink target first —
+`readlink ~/.claude/skills` — to get the real repo path.)
 
 ## When to Use This Skill
 
@@ -90,7 +96,7 @@ I found a skill that might help! The "react-best-practices" skill provides
 React and Next.js performance optimization guidelines from Vercel Engineering.
 (185K installs)
 
-I'll fetch it, read it, and add it to ~/code/skills if it looks good:
+I'll fetch it, read it, and add it to this skills repo if it looks good:
 npx skills add vercel-labs/agent-skills@react-best-practices
 
 Learn more: https://skills.sh/vercel-labs/agent-skills/react-best-practices
@@ -108,9 +114,10 @@ If the user wants to proceed:
 2. **Read the fetched `SKILL.md`** before trusting it. It's about to load
    proactively into every agent's context — a bad or malicious skill file is a bad
    process (or a prompt injection) encoded forever.
-3. Copy it into this repo — wherever the CLI put it, move the skill folder here:
+3. Copy it into this repo's root (resolved above) — wherever the CLI put it, move
+   the skill folder here:
    ```bash
-   cp -R ~/.agents/skills/<skill> ~/code/skills/<skill>
+   cp -R ~/.agents/skills/<skill> <repo-root>/<skill>
    ```
 4. Add a row to the **Skills** table in this repo's `README.md` (name, what it does,
    evals link if any).
@@ -146,7 +153,7 @@ If no relevant skills exist:
 
 1. Acknowledge that no existing skill was found
 2. Offer to help with the task directly using your general capabilities
-3. Suggest creating a skill directly in this repo (`~/code/skills/<name>/SKILL.md`)
+3. Suggest creating a skill directly in this repo (`<repo-root>/<name>/SKILL.md`)
 
 Example:
 
@@ -155,5 +162,5 @@ I searched for skills related to "xyz" but didn't find any matches.
 I can still help you with this task directly! Would you like me to proceed?
 
 If this is something you do often, we could write a skill for it and add it
-to ~/code/skills/xyz/SKILL.md.
+to this skills repo as xyz/SKILL.md.
 ```
