@@ -1,0 +1,78 @@
+{
+  "skill": "interviews",
+  "notes": "Trigger-heavy preference skill. The main risk is over-triggering, so half the cases are negative. Checks are regex over the run transcript: positives must ask several questions AND touch architecture vocabulary; negatives must NOT open an architecture interview. Trigger detection via stdout is approximate — see README.md for a trace-based alternative per harness.",
+  "arch_vocab": "reference only: (arquitetura|architecture|fonte da verdade|source of truth|escala|scale|estado|state|fronteira|boundar|síncrono|assíncrono|async|offline|modelo de dados|data model|trade)",
+  "cases": [
+    {
+      "id": "pos-greenfield-app",
+      "prompt": "Me ajuda a construir um app de controle de finanças pessoais.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "\\?", "min": 3, "description": "faz várias perguntas antes de construir" },
+        { "pattern": "arquitetura|architecture|fonte da verdade|source of truth|escala|scale|estado|state|fronteira|boundar|s[íi]ncrono|ass[íi]ncrono|async|offline|modelo de dados|data model|trade", "flags": "i", "min": 1, "description": "toca em decisão de arquitetura" }
+      ]
+    },
+    {
+      "id": "pos-design-question",
+      "prompt": "Como eu devo estruturar um sistema de notificações pro nosso backend?",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "\\?", "min": 3, "description": "entrevista antes de propor" },
+        { "pattern": "arquitetura|architecture|escala|scale|estado|state|fronteira|boundar|s[íi]ncrono|ass[íi]ncrono|async|fila|queue|push|trade", "flags": "i", "min": 1, "description": "toca em decisão de design" }
+      ]
+    },
+    {
+      "id": "pos-add-auth",
+      "prompt": "Preciso adicionar autenticação no app.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "\\?", "min": 3, "description": "pergunta antes (JWT vs sessão, provider, etc.)" },
+        { "pattern": "arquitetura|architecture|sess(ã|a)o|session|jwt|token|provider|oauth|estado|state|fronteira|boundar|trade", "flags": "i", "min": 1, "description": "toca nas bifurcações de auth" }
+      ]
+    },
+    {
+      "id": "pos-refactor-payments",
+      "prompt": "Quero refatorar o módulo de pagamentos pra suportar múltiplos gateways.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "\\?", "min": 3, "description": "entrevista sobre o refactor" },
+        { "pattern": "arquitetura|architecture|abstra|interface|fronteira|boundar|estado|state|migra|s[íi]ncrono|ass[íi]ncrono|async|trade", "flags": "i", "min": 1, "description": "toca nas decisões que mudam o design" }
+      ]
+    },
+    {
+      "id": "neg-typo",
+      "prompt": "Corrige o typo 'recieve' pra 'receive' no README.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "arquitetura|architecture|fonte da verdade|source of truth|escala|scale|fronteira|boundar|modelo de dados|data model", "flags": "i", "negate": true, "description": "NÃO abre entrevista de arquitetura" },
+        { "pattern": "\\?", "max": 1, "description": "no máximo uma pergunta, sem lote" }
+      ]
+    },
+    {
+      "id": "neg-bugfix",
+      "prompt": "Tem um bug: o botão de logout não redireciona pra tela de login. Debuga e corrige.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "arquitetura|architecture|fonte da verdade|source of truth|escala|scale|fronteira|boundar|modelo de dados|data model", "flags": "i", "negate": true, "description": "NÃO trata bug como decisão de arquitetura" }
+      ]
+    },
+    {
+      "id": "neg-rename",
+      "prompt": "Renomeia a variável `foo` pra `userCount` em utils.ts.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "edição mecânica, sem entrevista" },
+        { "pattern": "\\?", "max": 1, "description": "no máximo uma pergunta" }
+      ]
+    },
+    {
+      "id": "neg-just-build",
+      "prompt": "Constrói um endpoint GET /health que retorna 200 e {\"status\":\"ok\"}. Já está definido, só faz — não me pergunta nada.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "respeita 'só faz, não pergunta'" },
+        { "pattern": "\\?", "max": 1, "description": "não abre lote de perguntas" }
+      ]
+    }
+  ]
+}
