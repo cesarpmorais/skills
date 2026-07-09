@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
-"""Shared regex/filesystem eval runner for the skills in this repo.
+"""Run a skill's evals.
 
-Point it at a skill by name; it runs that skill's cases from
-<skill>/evals/evals.json and writes results to <skill>/evals/results/.
+Usage:
+    python3 run_evals.py <skill> [options]
 
+Commands:
     python3 run_evals.py interviews
+        Run every case in interviews/evals/evals.json (claude -p on Haiku).
     python3 run_evals.py interviews --model claude-sonnet-5
-    python3 run_evals.py interviews --trials 3 --case pos-add-auth
+        Same, but on a different model.
+    python3 run_evals.py interviews --case pos-add-auth --case neg-just-build
+        Run only the named case(s).
+    python3 run_evals.py interviews --trials 3
+        Change trials per case (default 5).
     python3 run_evals.py interviews --harness-cmd 'codex exec --full-auto {prompt}'
+        Test a different agent entirely ({prompt} is replaced per case).
 
-By default it runs the local Claude Code CLI on Claude Haiku (cheap/fast, fine
-for trigger evals). Override the model with --model, or swap the whole harness
-with --harness-cmd (must contain a {prompt} token). Each case's prompt is
-substituted for {prompt}, run once per trial in an isolated empty temp workspace.
+Options:
+    <skill>            Skill name; runs <skill>/evals/evals.json          (required)
+    --model M          Model for the default claude harness              (default claude-haiku-4-5-20251001)
+    --harness-cmd C    Replace the whole harness; must contain {prompt}
+    --trials N         Trials per case                                   (default 5)
+    --min-pass-rate R  Fraction of trials that must pass                 (default 0.6)
+    --timeout S        Per-trial timeout, seconds                        (default 180)
+    --case ID          Run only this case id; repeatable
 
+Each case's prompt runs once per trial in an isolated, empty temp workspace.
+Default harness: `claude -p --permission-mode acceptEdits --model <M> {prompt}`.
 A trial ERRORS (not pass/fail) when the harness exits non-zero or times out, so a
-broken/unauthenticated harness can never masquerade as passing results.
+broken/unauthenticated harness never masquerades as passing.
+Results go to <skill>/evals/results/<timestamp>/ — every run is kept, none deleted.
 """
 from __future__ import annotations
 
