@@ -62,6 +62,12 @@ via `--harness-cmd`. If the harness breaks (not logged in, crash, timeout) the c
 is marked **ERRORED**, never pass/fail — a broken tool never becomes a result. Each
 skill keeps its own `evals/evals.json` next to its `SKILL.md`.
 
+> **The skill under test must be installed in the harness you run.** Trials run in an
+> isolated empty tempdir, so only *user-level* skills load. Claude Code reads
+> `~/.claude/skills` (already symlinked to this repo). Codex reads `~/.agents/skills`
+> — install with `ln -s ~/code/skills/<skill> ~/.agents/skills/<skill>`. Without this
+> the agent never sees the skill and the eval measures the raw model, not the skill.
+
 ## CI
 
 `.github/workflows/evals.yml` runs `run_evals.py` for every skill that has an

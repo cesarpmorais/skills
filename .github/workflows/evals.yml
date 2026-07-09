@@ -53,6 +53,21 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: printenv OPENAI_API_KEY | codex login --with-api-key
 
+      - name: Install repo skills so Codex can load them
+        # The eval runs each trial in an isolated empty tempdir, so Codex only sees
+        # user-level skills — and its user-level dir is $HOME/.agents/skills (per
+        # https://learn.chatgpt.com/docs/build-skills). Without this, the skill under
+        # test is never loaded: the agent builds instead of triggering, which both
+        # fails the eval and makes it slow. Installing all repo skills also matches
+        # the "test with the whole library loaded" practice (cross over-triggering).
+        run: |
+          mkdir -p "$HOME/.agents/skills"
+          for skill_md in */SKILL.md; do
+            skill="$(dirname "$skill_md")"
+            ln -sfn "$PWD/$skill" "$HOME/.agents/skills/$skill"
+          done
+          ls -la "$HOME/.agents/skills"
+
       - name: Run evals for every skill that has an eval set
         env:
           PYTHONUNBUFFERED: "1"  # stream per-trial progress live into the CI log
