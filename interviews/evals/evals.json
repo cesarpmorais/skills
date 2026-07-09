@@ -48,8 +48,7 @@
       "prompt": "Corrige o typo 'recieve' pra 'receive' no README.",
       "should_trigger": false,
       "checks": [
-        { "pattern": "arquitetura|architecture|fonte da verdade|source of truth|escala|scale|fronteira|boundar|modelo de dados|data model", "flags": "i", "negate": true, "description": "NÃO abre entrevista de arquitetura" },
-        { "pattern": "\\?", "max": 1, "description": "no máximo uma pergunta, sem lote" }
+        { "pattern": "arquitetura|architecture|fonte da verdade|source of truth|escala|scale|fronteira|boundar|modelo de dados|data model", "flags": "i", "negate": true, "description": "NÃO abre entrevista de arquitetura" }
       ]
     },
     {
@@ -65,8 +64,7 @@
       "prompt": "Renomeia a variável `foo` pra `userCount` em utils.ts.",
       "should_trigger": false,
       "checks": [
-        { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "edição mecânica, sem entrevista" },
-        { "pattern": "\\?", "max": 1, "description": "no máximo uma pergunta" }
+        { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "edição mecânica, sem entrevista" }
       ]
     },
     {
@@ -75,8 +73,7 @@
       "should_trigger": false,
       "checks": [
         { "type": "files", "workspace_clean": false, "description": "construiu o endpoint em vez de entrevistar (workspace sujo)" },
-        { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "respeita 'só faz, não pergunta'" },
-        { "pattern": "\\?", "max": 1, "description": "não abre lote de perguntas" }
+        { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "respeita 'só faz, não pergunta'" }
       ]
     }
   ]

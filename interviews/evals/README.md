@@ -42,13 +42,14 @@ as dirty); pass `"include_hidden": true` to count them.
 
 **2. Regex over the transcript — the corroborating layer.**
 Positives ask several questions (`\?` ≥ 3) **and** hit architecture vocabulary.
-Negatives must **not** open an architecture interview (vocab negated, question count
-capped). `min` defaults to 1, but to 0 when only `max` is set (so "at most one
-question" passes on zero questions).
+Negatives must **not** open an architecture interview — the true over-triggering
+signal is *architecture vocabulary*, so negatives just negate that. We deliberately do
+**not** cap question count on negatives: in an empty workspace a well-behaved agent
+legitimately asks "which file?" (the target doesn't exist), and that clarification is
+not the skill mis-firing.
 
 Where the filesystem is ambiguous — a typo fix or rename in an *empty* workspace has
-nothing to change, so a well-behaved agent writes nothing either way — those negative
-cases rely on regex alone.
+nothing to change — those negative cases rely on the vocab check alone.
 
 ## Going further: trace-based trigger detection
 

@@ -144,7 +144,8 @@ def main() -> int:
     args = ap.parse_args()
 
     data, evals_dir = load_evals(args.skill)
-    harness = args.harness_cmd or f"claude -p --model {args.model} {{prompt}}"
+    harness = args.harness_cmd or (
+        f"claude -p --permission-mode acceptEdits --model {args.model} {{prompt}}")
 
     cases = data.get("cases", [])
     if args.case:
