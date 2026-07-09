@@ -42,7 +42,7 @@ e só carregam quando o agent precisa.
 
 ## Princípios
 
-- **Tudo em português.** Toda skill deste repo é escrita em PT-BR (frontmatter e corpo).
+- **Tudo em inglês.** Toda skill deste repo é escrita em inglês (frontmatter e corpo); este README fica em PT.
 - **A description é o que dispara a skill.** Escreva o quê / quando / quando NÃO usar.
 - **Enxuto.** Objetivos e restrições, não um passo-a-passo que engessa o agent.
 - **Escrita por humano.** O draft pode nascer de uma conversa, mas quem decide o conteúdo
