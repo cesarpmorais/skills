@@ -54,7 +54,7 @@ The runner is a single script at the root; the skill is the argument. Runs on
 ```bash
 python3 run_evals.py interviews                    # default: claude -p, Haiku
 python3 run_evals.py interviews --model claude-sonnet-5
-python3 run_evals.py interviews --harness-cmd 'codex exec -s workspace-write --skip-git-repo-check -m gpt-5-mini {prompt}'
+python3 run_evals.py interviews --harness-cmd 'codex exec -s workspace-write --skip-git-repo-check -m gpt-5.4-mini {prompt}'
 ```
 
 Requires the `claude` CLI to be logged in (`claude` → `/login`), or another harness
@@ -66,9 +66,12 @@ skill keeps its own `evals/evals.json` next to its `SKILL.md`.
 
 `.github/workflows/evals.yml` runs `run_evals.py` for every skill that has an
 `evals/evals.json`, on every push/PR touching `evals.json`, `SKILL.md`, or the runner
-itself. CI uses the **Codex CLI** (`@openai/codex`) on a cheap/fast OpenAI model
-(the Codex-side equivalent of Haiku) rather than the local default — Codex is
-easier to authenticate headlessly in Actions. Needs one repo secret:
+itself. CI uses the **Codex CLI** (`@openai/codex`) on `gpt-5.4-mini` (the cheap/fast
+tier, Codex's Haiku-equivalent) rather than the local default, since Codex is easier
+to authenticate headlessly in Actions. It bypasses Codex's inner sandbox
+(`--dangerously-bypass-approvals-and-sandbox`) because the runner is already an
+isolated VM and the bundled bubblewrap can't set up networking there. Needs one repo
+secret:
 
 - **Settings → Secrets and variables → Actions → New repository secret**
 - Name: `OPENAI_API_KEY` — an OpenAI API key from [platform.openai.com](https://platform.openai.com), used by `codex login --with-api-key` for headless auth (no interactive login)

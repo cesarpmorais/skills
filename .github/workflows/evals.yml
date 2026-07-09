@@ -21,13 +21,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Cheap/fast OpenAI tier — the Codex-side equivalent of Claude Haiku for
-  # trigger evals. Double-check this is still current before relying on it;
-  # OpenAI's mini/nano naming shifts across releases. This CLI build (0.144.0)
-  # warns "Model metadata not found, defaulting to fallback" for this id — soft,
-  # non-fatal (falls back to generic metadata), but worth an eye once real API
-  # calls are flowing to confirm it isn't silently degrading eval quality.
-  EVAL_MODEL: gpt-5-mini
+  # Cheap/fast tier — the Codex-side equivalent of Claude Haiku for trigger
+  # evals. Must be a slug this Codex build knows natively, else it warns
+  # "Model metadata not found, defaulting to fallback" and runs slower on
+  # generic settings. Recognized slugs in codex 0.144.0: gpt-5.2, gpt-5.4,
+  # gpt-5.4-mini, gpt-5.5, gpt-5.6-{luna,sol,terra}. Re-check when bumping the CLI.
+  EVAL_MODEL: gpt-5.4-mini
 
 jobs:
   evals:
@@ -61,11 +60,16 @@ jobs:
           for evals_json in */evals/evals.json; do
             skill="$(dirname "$(dirname "$evals_json")")"
             echo "::group::evals — $skill"
-            # --skip-git-repo-check: each trial runs in a fresh, isolated, empty
-            # tempdir (by design, for a clean workspace) — never a git repo, so
-            # Codex's trust check would otherwise refuse to run there.
-            python3 run_evals.py "$skill" \
-              --harness-cmd "codex exec -s workspace-write --skip-git-repo-check -m $EVAL_MODEL {prompt}" \
+            # --dangerously-bypass-approvals-and-sandbox: the Actions runner is
+            #   already an isolated ephemeral VM, and Codex's own bubblewrap
+            #   sandbox can't set up its network namespace there
+            #   ("bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted"),
+            #   which blocked the agent from writing files. Bypassing the inner
+            #   sandbox lets it actually act (and removes the retry hangs).
+            # --skip-git-repo-check: each trial runs in a fresh, empty tempdir
+            #   (by design, for a clean workspace), never a git repo.
+            python3 run_evals.py "$skill" --trials 3 \
+              --harness-cmd "codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -m $EVAL_MODEL {prompt}" \
               || status=1
             echo "::endgroup::"
           done
