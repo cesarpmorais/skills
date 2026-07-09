@@ -54,7 +54,7 @@ The runner is a single script at the root; the skill is the argument. Runs on
 ```bash
 python3 run_evals.py interviews                    # default: claude -p, Haiku
 python3 run_evals.py interviews --model claude-sonnet-5
-python3 run_evals.py interviews --harness-cmd 'codex exec -s workspace-write -m gpt-5-mini {prompt}'
+python3 run_evals.py interviews --harness-cmd 'codex exec -s workspace-write --skip-git-repo-check -m gpt-5-mini {prompt}'
 ```
 
 Requires the `claude` CLI to be logged in (`claude` → `/login`), or another harness

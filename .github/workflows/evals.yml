@@ -23,7 +23,10 @@ concurrency:
 env:
   # Cheap/fast OpenAI tier — the Codex-side equivalent of Claude Haiku for
   # trigger evals. Double-check this is still current before relying on it;
-  # OpenAI's mini/nano naming shifts across releases.
+  # OpenAI's mini/nano naming shifts across releases. This CLI build (0.144.0)
+  # warns "Model metadata not found, defaulting to fallback" for this id — soft,
+  # non-fatal (falls back to generic metadata), but worth an eye once real API
+  # calls are flowing to confirm it isn't silently degrading eval quality.
   EVAL_MODEL: gpt-5-mini
 
 jobs:
@@ -58,8 +61,11 @@ jobs:
           for evals_json in */evals/evals.json; do
             skill="$(dirname "$(dirname "$evals_json")")"
             echo "::group::evals — $skill"
+            # --skip-git-repo-check: each trial runs in a fresh, isolated, empty
+            # tempdir (by design, for a clean workspace) — never a git repo, so
+            # Codex's trust check would otherwise refuse to run there.
             python3 run_evals.py "$skill" \
-              --harness-cmd "codex exec -s workspace-write -m $EVAL_MODEL {prompt}" \
+              --harness-cmd "codex exec -s workspace-write --skip-git-repo-check -m $EVAL_MODEL {prompt}" \
               || status=1
             echo "::endgroup::"
           done
