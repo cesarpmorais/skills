@@ -51,9 +51,9 @@ The runner is a single script at the root; the skill is the argument. Runs on
 `claude -p` with Haiku by default:
 
 ```bash
-python3 run_evals.py interviews                    # default: Haiku
+python3 run_evals.py interviews                    # default: claude -p, Haiku
 python3 run_evals.py interviews --model claude-sonnet-5
-python3 run_evals.py interviews --harness-cmd 'codex exec --full-auto {prompt}'
+python3 run_evals.py interviews --harness-cmd 'codex exec -s workspace-write -m gpt-5-mini {prompt}'
 ```
 
 Requires the `claude` CLI to be logged in (`claude` → `/login`), or another harness
@@ -63,12 +63,14 @@ skill keeps its own `evals/evals.json` next to its `SKILL.md`.
 
 ## CI
 
-`.github/workflows/evals.yml` runs `run_evals.py` (Haiku, default) for every skill
-that has an `evals/evals.json`, on every push/PR touching `evals.json`, `SKILL.md`,
-or the runner itself. Needs one repo secret:
+`.github/workflows/evals.yml` runs `run_evals.py` for every skill that has an
+`evals/evals.json`, on every push/PR touching `evals.json`, `SKILL.md`, or the runner
+itself. CI uses the **Codex CLI** (`@openai/codex`) on a cheap/fast OpenAI model
+(the Codex-side equivalent of Haiku) rather than the local default — Codex is
+easier to authenticate headlessly in Actions. Needs one repo secret:
 
 - **Settings → Secrets and variables → Actions → New repository secret**
-- Name: `ANTHROPIC_API_KEY` — used by the `claude` CLI in headless mode (no interactive `/login`)
+- Name: `OPENAI_API_KEY` — an OpenAI API key from [platform.openai.com](https://platform.openai.com), used by `codex login --with-api-key` for headless auth (no interactive login)
 
 Results from each run are attached as a workflow artifact.
 

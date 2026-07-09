@@ -20,14 +20,16 @@ concurrency:
   group: skill-evals-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Cheap/fast OpenAI tier — the Codex-side equivalent of Claude Haiku for
+  # trigger evals. Double-check this is still current before relying on it;
+  # OpenAI's mini/nano naming shifts across releases.
+  EVAL_MODEL: gpt-5-mini
+
 jobs:
   evals:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      # Headless auth for `claude -p` — no interactive /login needed.
-      # Add this as a repo secret: Settings -> Secrets and variables -> Actions.
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -39,8 +41,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+
+      - name: Log in to Codex (headless, API key)
+        env:
+          # Add this as a repo secret: Settings -> Secrets and variables -> Actions.
+          # This is an OpenAI API key (from platform.openai.com), not a Claude token.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: printenv OPENAI_API_KEY | codex login --with-api-key
 
       - name: Run evals for every skill that has an eval set
         run: |
@@ -49,8 +58,9 @@ jobs:
           for evals_json in */evals/evals.json; do
             skill="$(dirname "$(dirname "$evals_json")")"
             echo "::group::evals — $skill"
-            # Default harness (Haiku) from run_evals.py; override with --model if needed.
-            python3 run_evals.py "$skill" || status=1
+            python3 run_evals.py "$skill" \
+              --harness-cmd "codex exec -s workspace-write -m $EVAL_MODEL {prompt}" \
+              || status=1
             echo "::endgroup::"
           done
           exit $status
