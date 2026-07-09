@@ -40,6 +40,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -157,6 +158,14 @@ def main() -> int:
     ap.add_argument("--case", action="append", help="Run only these case id(s)")
     args = ap.parse_args()
 
+    # Stream output live: flush on every newline so progress shows up as it
+    # happens (in a terminal and, crucially, in CI logs where stdout is otherwise
+    # block-buffered and everything would appear only at the end).
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except AttributeError:
+        pass
+
     data, evals_dir = load_evals(args.skill)
     harness = args.harness_cmd or (
         f"claude -p --permission-mode acceptEdits --model {args.model} {{prompt}}")
@@ -180,16 +189,23 @@ def main() -> int:
             print(f"⚠️  {case['id']}: no checks — skipping (should_trigger={case.get('should_trigger')})")
             continue
         cmd = build_cmd(harness, case["prompt"])
+        tag = "trigger" if case.get("should_trigger") else "NO-trigger"
+        print(f"▶  {case['id']} [{tag}] — running {args.trials} trials")
         trials, n_pass, n_error = [], 0, 0
+        icon = {PASS: "✅", FAIL: "❌", ERROR: "⚠️ "}
         for i in range(args.trials):
+            t0 = time.monotonic()
             transcript, files, rc = run_once(cmd, args.timeout)
             outcome, chk_results = eval_trial(case, transcript, files, rc)
+            dt = time.monotonic() - t0
             n_pass += int(outcome == PASS)
             n_error += int(outcome == ERROR)
+            failed = [c["description"] for c in chk_results if not c["passed"]]
+            detail = f" — failed: {'; '.join(failed)}" if outcome == FAIL and failed else ""
+            print(f"     trial {i + 1}/{args.trials}: {icon[outcome]} {outcome} ({dt:.0f}s){detail}")
             trials.append({"trial": i, "outcome": outcome, "returncode": rc,
                            "checks": chk_results, "files": files, "transcript": transcript[:4000]})
 
-        tag = "trigger" if case.get("should_trigger") else "NO-trigger"
         if n_error:
             any_error = all_ok = False
             print(f"⚠️  {case['id']} [{tag}] — {n_error}/{args.trials} trials ERRORED "

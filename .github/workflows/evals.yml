@@ -54,6 +54,8 @@ jobs:
         run: printenv OPENAI_API_KEY | codex login --with-api-key
 
       - name: Run evals for every skill that has an eval set
+        env:
+          PYTHONUNBUFFERED: "1"  # stream per-trial progress live into the CI log
         run: |
           set -e
           status=0
