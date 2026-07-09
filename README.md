@@ -1,45 +1,54 @@
 # skills
 
-Fonte da verdade das minhas agent skills. Model-agnostic por design: cada skill é um
-`SKILL.md` (markdown + frontmatter YAML), o formato compartilhado por Claude Code, Codex,
-Cursor e dezenas de outros coding agents.
+Source of truth for my agent skills. Model-agnostic by design: each skill is a
+`SKILL.md` (markdown + YAML frontmatter), the format shared by Claude Code, Codex,
+Cursor, and dozens of other coding agents.
 
-## Como os agents usam este repo
+## Skills
 
-Cada agent lê skills de um diretório próprio. Em vez de copiar arquivos, aponto um symlink
-pra cá — assim este repo é a única cópia e todo agent enxerga a mesma coisa:
+| Skill | What it does | Evals |
+|---|---|---|
+| [`find-skills`](find-skills) | Discovers and installs skills from the open agent-skills ecosystem (`npx skills`). | — |
+| [`interviews`](interviews) | Before a non-trivial build, interviews you to lock down the decisions that would change the architecture. | [evals](interviews/evals) |
+| [`slidev`](slidev) | Creates and presents technical slide decks with Slidev (markdown + Vue). Installed from [`slidevjs/slidev`](https://github.com/slidevjs/slidev) (official). | — |
+
+## How agents use this repo
+
+Each agent reads skills from its own directory. Instead of copying files, I point a
+symlink here — this repo stays the single copy and every agent sees the same thing:
 
 ```bash
 # Claude Code
 ln -s ~/code/skills ~/.claude/skills
 
-# outros agents (ajuste o destino conforme a doc de cada um)
+# other agents (adjust the target per each one's docs)
 # Codex   → ~/.codex/skills
 # Cursor  → ~/.cursor/skills
 ```
 
-Alternativa (sem symlink): instalar via o package manager do ecossistema —
+Alternative (no symlink): install via the ecosystem's package manager —
 `npx skills add <owner/repo@skill> -g`.
 
-## Estrutura
+## Structure
 
 ```
 skills/
-  run_evals.py        # runner de evals compartilhado (aponta pra uma skill por nome)
+  run_evals.py        # shared eval runner (points at a skill by name)
   find-skills/
     SKILL.md
   <skill>/
-    SKILL.md          # frontmatter (name, description) + corpo
-    references/       # opcional: arquivos que carregam sob demanda
-    evals/            # opcional: evals.json (+ results/, gitignorado)
+    SKILL.md           # frontmatter (name, description) + body
+    references/        # optional: files that load on demand
+    evals/              # optional: evals.json (+ results/, gitignored)
 ```
 
-Uma skill = uma capacidade. O `SKILL.md` fica enxuto; detalhes longos vão pra `references/`
-e só carregam quando o agent precisa.
+One skill = one capability. `SKILL.md` stays lean; long details move to
+`references/` and only load when the agent needs them.
 
-## Testar uma skill (evals)
+## Testing a skill (evals)
 
-O runner é único na raiz; a skill é o argumento. Roda no `claude -p` em Haiku por padrão:
+The runner is a single script at the root; the skill is the argument. Runs on
+`claude -p` with Haiku by default:
 
 ```bash
 python3 run_evals.py interviews                    # default: Haiku
@@ -47,32 +56,26 @@ python3 run_evals.py interviews --model claude-sonnet-5
 python3 run_evals.py interviews --harness-cmd 'codex exec --full-auto {prompt}'
 ```
 
-Precisa do CLI `claude` logado (`claude` → `/login`) ou outro harness via `--harness-cmd`.
-Se o harness quebra (não logado, crash, timeout) o caso é marcado **ERRORED**, nunca
-pass/fail — ferramenta quebrada não vira resultado. Cada skill guarda seu `evals/evals.json`
-ao lado do `SKILL.md`.
+Requires the `claude` CLI to be logged in (`claude` → `/login`), or another harness
+via `--harness-cmd`. If the harness breaks (not logged in, crash, timeout) the case
+is marked **ERRORED**, never pass/fail — a broken tool never becomes a result. Each
+skill keeps its own `evals/evals.json` next to its `SKILL.md`.
 
 ## CI
 
-`.github/workflows/evals.yml` roda `run_evals.py` (Haiku, default) pra toda skill que
-tiver `evals/evals.json`, em todo push/PR que toque `evals.json`, `SKILL.md` ou o próprio
-runner. Precisa de um secret no repo:
+`.github/workflows/evals.yml` runs `run_evals.py` (Haiku, default) for every skill
+that has an `evals/evals.json`, on every push/PR touching `evals.json`, `SKILL.md`,
+or the runner itself. Needs one repo secret:
 
 - **Settings → Secrets and variables → Actions → New repository secret**
-- Nome: `ANTHROPIC_API_KEY` — usado pelo `claude` CLI em modo headless (sem `/login` interativo)
+- Name: `ANTHROPIC_API_KEY` — used by the `claude` CLI in headless mode (no interactive `/login`)
 
-Resultados de cada run ficam disponíveis como artifact do workflow.
+Results from each run are attached as a workflow artifact.
 
-## Skills
+## Principles
 
-- **find-skills** — descobrir e instalar skills do ecossistema aberto (`npx skills`).
-- **interviews** — antes de um build não-trivial, entrevista você para travar as decisões que mudam a arquitetura.
-- **slidev** — criar e apresentar slide decks técnicos com Slidev (markdown + Vue). Instalada de `slidevjs/slidev` (oficial).
-
-## Princípios
-
-- **Tudo em inglês.** Toda skill deste repo é escrita em inglês (frontmatter e corpo); este README fica em PT.
-- **A description é o que dispara a skill.** Escreva o quê / quando / quando NÃO usar.
-- **Enxuto.** Objetivos e restrições, não um passo-a-passo que engessa o agent.
-- **Escrita por humano.** O draft pode nascer de uma conversa, mas quem decide o conteúdo
-  sou eu — skill ruim codifica um processo ruim pra sempre.
+- **English only.** Every skill in this repo is written in English (frontmatter and body); this README is the exception.
+- **The description is what triggers the skill.** Write the what / when / when-not.
+- **Lean.** Goals and constraints, not a step-by-step that boxes the agent in.
+- **Human-written.** The draft can come out of a conversation, but I decide the
+  content — a bad skill file encodes a bad process forever.
