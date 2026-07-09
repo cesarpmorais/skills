@@ -34,19 +34,69 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need history so we can diff against the base commit
+
+      - name: Select which skills to eval
+        id: select
+        # Only re-run a skill's evals when THAT skill changed (its SKILL.md or
+        # evals/). If shared infra changed (run_evals.py or this workflow), or we
+        # have no diff base (manual run / new branch), run every skill that has
+        # an eval set.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -e
+          all_skills() {
+            for j in */evals/evals.json; do dirname "$(dirname "$j")"; done | sort -u | xargs
+          }
+          base=""
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE" ;;
+            push)         base="$PUSH_BEFORE" ;;
+          esac
+          if [ -z "$base" ] || ! git rev-parse -q --verify "$base^{commit}" >/dev/null 2>&1; then
+            echo "No usable diff base (manual run / new branch) -> running all skills."
+            skills="$(all_skills)"
+          else
+            changed="$(git diff --name-only "$base" HEAD)"
+            echo "Changed files:"; echo "$changed" | sed 's/^/  /'
+            if echo "$changed" | grep -qE '^(run_evals\.py|\.github/workflows/evals\.yml)$'; then
+              echo "Shared infra changed -> running all skills."
+              skills="$(all_skills)"
+            else
+              picked=""
+              for s in $(echo "$changed" | grep -E '^[^/]+/(SKILL\.md|evals/)' | cut -d/ -f1 | sort -u); do
+                [ -f "$s/evals/evals.json" ] && picked="$picked $s"
+              done
+              skills="$(echo $picked | xargs || true)"
+            fi
+          fi
+          echo "skills=$skills" >> "$GITHUB_OUTPUT"
+          if [ -n "$skills" ]; then
+            echo "Will eval: $skills"
+          else
+            echo "No changed skill has an eval set — nothing to run."
+          fi
 
       - uses: actions/setup-node@v4
+        if: steps.select.outputs.skills != ''
         with:
           node-version: "20"
 
       - uses: actions/setup-python@v5
+        if: steps.select.outputs.skills != ''
         with:
           python-version: "3.11"
 
       - name: Install Codex CLI
+        if: steps.select.outputs.skills != ''
         run: npm install -g @openai/codex
 
       - name: Log in to Codex (headless, API key)
+        if: steps.select.outputs.skills != ''
         env:
           # Add this as a repo secret: Settings -> Secrets and variables -> Actions.
           # This is an OpenAI API key (from platform.openai.com), not a Claude token.
@@ -54,12 +104,14 @@ jobs:
         run: printenv OPENAI_API_KEY | codex login --with-api-key
 
       - name: Install repo skills so Codex can load them
+        if: steps.select.outputs.skills != ''
         # The eval runs each trial in an isolated empty tempdir, so Codex only sees
         # user-level skills — and its user-level dir is $HOME/.agents/skills (per
         # https://learn.chatgpt.com/docs/build-skills). Without this, the skill under
         # test is never loaded: the agent builds instead of triggering, which both
-        # fails the eval and makes it slow. Installing all repo skills also matches
-        # the "test with the whole library loaded" practice (cross over-triggering).
+        # fails the eval and makes it slow. Install ALL repo skills (not just the
+        # ones under test) to match the "whole library loaded" practice — it catches
+        # cross over-triggering between skills.
         run: |
           mkdir -p "$HOME/.agents/skills"
           for skill_md in */SKILL.md; do
@@ -68,14 +120,15 @@ jobs:
           done
           ls -la "$HOME/.agents/skills"
 
-      - name: Run evals for every skill that has an eval set
+      - name: Run evals for the selected skills
+        if: steps.select.outputs.skills != ''
         env:
           PYTHONUNBUFFERED: "1"  # stream per-trial progress live into the CI log
+          SKILLS: ${{ steps.select.outputs.skills }}
         run: |
           set -e
           status=0
-          for evals_json in */evals/evals.json; do
-            skill="$(dirname "$(dirname "$evals_json")")"
+          for skill in $SKILLS; do
             echo "::group::evals — $skill"
             # --dangerously-bypass-approvals-and-sandbox: the Actions runner is
             #   already an isolated ephemeral VM, and Codex's own bubblewrap
