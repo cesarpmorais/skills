@@ -5,7 +5,10 @@ description: Helps users discover and install agent skills when they ask questio
 
 # Find Skills
 
-This skill helps you discover and install skills from the open agent skills ecosystem.
+This skill helps you discover skills from the open agent skills ecosystem and install
+them into **this repo** (`~/code/skills`) — the source of truth symlinked into every
+agent's skills directory. A skill only "counts" as installed once it lives here, not
+in an agent's own scattered global skills folder.
 
 ## When to Use This Skill
 
@@ -87,21 +90,35 @@ I found a skill that might help! The "react-best-practices" skill provides
 React and Next.js performance optimization guidelines from Vercel Engineering.
 (185K installs)
 
-To install it:
+I'll fetch it, read it, and add it to ~/code/skills if it looks good:
 npx skills add vercel-labs/agent-skills@react-best-practices
 
 Learn more: https://skills.sh/vercel-labs/agent-skills/react-best-practices
 ```
 
-### Step 6: Offer to Install
+### Step 6: Install Into This Repo
 
-If the user wants to proceed, you can install the skill for them:
+If the user wants to proceed:
 
-```bash
-npx skills add <owner/repo@skill> -g -y
-```
+1. Fetch it with the CLI. Let it run interactively — don't `-y` past the **security
+   risk assessment** it prints (Gen/Socket/Snyk ratings); read it first.
+   ```bash
+   npx skills add <owner/repo@skill>
+   ```
+2. **Read the fetched `SKILL.md`** before trusting it. It's about to load
+   proactively into every agent's context — a bad or malicious skill file is a bad
+   process (or a prompt injection) encoded forever.
+3. Copy it into this repo — wherever the CLI put it, move the skill folder here:
+   ```bash
+   cp -R ~/.agents/skills/<skill> ~/code/skills/<skill>
+   ```
+4. Add a row to the **Skills** table in this repo's `README.md` (name, what it does,
+   evals link if any).
+5. Commit.
 
-The `-g` flag installs globally (user-level) and `-y` skips confirmation prompts.
+Skip the CLI's `-g`/global install entirely for the purposes of this repo — it
+scatters the skill into per-agent directories instead of the one place every agent
+actually reads from.
 
 ## Common Skill Categories
 
@@ -129,7 +146,7 @@ If no relevant skills exist:
 
 1. Acknowledge that no existing skill was found
 2. Offer to help with the task directly using your general capabilities
-3. Suggest the user could create their own skill with `npx skills init`
+3. Suggest creating a skill directly in this repo (`~/code/skills/<name>/SKILL.md`)
 
 Example:
 
@@ -137,6 +154,6 @@ Example:
 I searched for skills related to "xyz" but didn't find any matches.
 I can still help you with this task directly! Would you like me to proceed?
 
-If this is something you do often, you could create your own skill:
-npx skills init my-xyz-skill
+If this is something you do often, we could write a skill for it and add it
+to ~/code/skills/xyz/SKILL.md.
 ```
