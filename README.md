@@ -25,15 +25,32 @@ Alternativa (sem symlink): instalar via o package manager do ecossistema —
 
 ```
 skills/
+  run_evals.py        # runner de evals compartilhado (aponta pra uma skill por nome)
   find-skills/
     SKILL.md
   <skill>/
     SKILL.md          # frontmatter (name, description) + corpo
     references/       # opcional: arquivos que carregam sob demanda
+    evals/            # opcional: evals.json (+ results/, gitignorado)
 ```
 
 Uma skill = uma capacidade. O `SKILL.md` fica enxuto; detalhes longos vão pra `references/`
 e só carregam quando o agent precisa.
+
+## Testar uma skill (evals)
+
+O runner é único na raiz; a skill é o argumento. Roda no `claude -p` em Haiku por padrão:
+
+```bash
+python3 run_evals.py interviews                    # default: Haiku
+python3 run_evals.py interviews --model claude-sonnet-5
+python3 run_evals.py interviews --harness-cmd 'codex exec --full-auto {prompt}'
+```
+
+Precisa do CLI `claude` logado (`claude` → `/login`) ou outro harness via `--harness-cmd`.
+Se o harness quebra (não logado, crash, timeout) o caso é marcado **ERRORED**, nunca
+pass/fail — ferramenta quebrada não vira resultado. Cada skill guarda seu `evals/evals.json`
+ao lado do `SKILL.md`.
 
 ## Skills
 

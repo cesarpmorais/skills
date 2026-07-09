@@ -6,23 +6,23 @@ purpose.
 
 ## Run
 
-No default harness — you pass one. The `{prompt}` token is replaced per case:
+Use the shared runner at the repo root, pointing it at this skill by name:
 
 ```bash
-# Claude Code
-python run_evals.py --harness-cmd 'claude -p {prompt}'
-
-# Codex
-python run_evals.py --harness-cmd 'codex exec --full-auto {prompt}' --trials 5
-
-# single case
-python run_evals.py --harness-cmd 'claude -p {prompt}' --case pos-add-auth
+# from ~/code/skills
+python3 run_evals.py interviews                       # default: claude -p on Haiku
+python3 run_evals.py interviews --model claude-sonnet-5
+python3 run_evals.py interviews --case pos-add-auth --trials 1
+python3 run_evals.py interviews --harness-cmd 'codex exec --full-auto {prompt}'
 ```
 
 Exit code is `0` only if every case clears `--min-pass-rate` (default 0.6 over 5
-trials). Per-trial transcripts land in `results/<timestamp>/results.json`.
+trials), `3` if the harness errored (see below), `1` on real failures. Per-trial
+transcripts land in `evals/results/<timestamp>/results.json`.
 
-Must run in a terminal where the harness CLI is on PATH.
+Requires the `claude` CLI on PATH and logged in (`claude` → `/login`), or another
+harness via `--harness-cmd`. A harness that exits non-zero (not authenticated,
+crash, timeout) is reported as **ERRORED**, never as pass/fail.
 
 ## What the checks mean
 
