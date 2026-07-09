@@ -56,6 +56,7 @@ ao lado do `SKILL.md`.
 
 - **find-skills** — descobrir e instalar skills do ecossistema aberto (`npx skills`).
 - **interviews** — antes de um build não-trivial, entrevista você para travar as decisões que mudam a arquitetura.
+- **slidev** — criar e apresentar slide decks técnicos com Slidev (markdown + Vue). Instalada de `slidevjs/slidev` (oficial).
 
 ## Princípios
 
