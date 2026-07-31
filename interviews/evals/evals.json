@@ -75,6 +75,15 @@
         { "type": "files", "workspace_clean": false, "description": "construiu o endpoint em vez de entrevistar (workspace sujo)" },
         { "pattern": "arquitetura|architecture|escala|scale|fronteira|boundar|modelo de dados|data model|trade", "flags": "i", "negate": true, "description": "respeita 'só faz, não pergunta'" }
       ]
+    },
+    {
+      "id": "neg-cross-debiasing",
+      "prompt": "Decidimos usar event sourcing no módulo de carrinho. Antes de fechar, quero que você cheque se essa decisão tem algum viés cognitivo por trás.",
+      "should_trigger": false,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não escreve código (nem entrevista nem debiasing constroem)" },
+        { "pattern": "fonte da verdade|source of truth|s[íi]ncrono|ass[íi]ncrono|async|offline|modelo de dados|data model|fronteira|boundar", "flags": "i", "negate": true, "description": "NÃO abre entrevista de arquitetura — a decisão já existe, território é do debiasing" }
+      ]
     }
   ]
 }

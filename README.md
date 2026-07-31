@@ -8,6 +8,7 @@ Cursor, and dozens of other coding agents.
 
 | Skill | What it does | Evals |
 |---|---|---|
+| [`debiasing`](debiasing) | Before a hard decision or ADR locks in, pressure-tests it for cognitive bias — scoped to how reversible the call is. Adapted from the [ddd-crew Debiasing Decisions Toolkit](https://github.com/ddd-crew/debiasing-decisions-toolkit) (CC BY-SA 4.0, see [attribution](debiasing/ATTRIBUTION.md)). | [evals](debiasing/evals) |
 | [`find-skills`](find-skills) | Discovers and installs skills from the open agent-skills ecosystem (`npx skills`). | — |
 | [`interviews`](interviews) | Before a non-trivial build, interviews you to lock down the decisions that would change the architecture. | [evals](interviews/evals) |
 | [`slidev`](slidev) | Creates and presents technical slide decks with Slidev (markdown + Vue). Installed from [`slidevjs/slidev`](https://github.com/slidevjs/slidev) (official). | — |
@@ -91,3 +92,9 @@ Results from each run are attached as a workflow artifact.
 - **Lean.** Goals and constraints, not a step-by-step that boxes the agent in.
 - **Human-written.** The draft can come out of a conversation, but I decide the
   content — a bad skill file encodes a bad process forever.
+
+## License
+
+MIT, except `debiasing/references/{checklist,biases,adr-snippet}.md`, which vendor
+content from the CC BY-SA 4.0 [ddd-crew Debiasing Decisions Toolkit](https://github.com/ddd-crew/debiasing-decisions-toolkit) —
+see [`debiasing/ATTRIBUTION.md`](debiasing/ATTRIBUTION.md).

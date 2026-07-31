@@ -1,0 +1,104 @@
+{
+  "skill": "debiasing",
+  "notes": "Two things at once: (1) the reversibility triage actually scopes the check (short vs full), tested by the contrast pair pos-one-way-door / pos-two-way-door; (2) the trigger boundary against `interviews` holds in both directions (neg-cross-interviews here, plus a reverse case added to interviews/evals/evals.json). All prompts are self-contained — the decision is stated in the prompt itself, so the agent never needs to ask 'which file/decision do you mean' in an empty tempdir.",
+  "bias_vocab": "reference only: (vi[ée]s|bias|status quo|two-way|one-way|revers|autoridade|authority|overconfiden|consenso|consensus|aditiv|additive|trivialidade|trivial|bikeshed|golden hammer|functional fixed|illusion of control|myopic|correlation neglect)",
+  "cases": [
+    {
+      "id": "pos-one-way-door",
+      "prompt": "Decidimos migrar o monolito inteiro pra microservices no Q3. Já é certo — antes de eu travar essa decisão de vez, quero ter certeza de que não é só um viés falando mais alto.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "pressiona a decisão em vez de escrever código (workspace limpo)" },
+        { "pattern": "vi[ée]s|bias|authority|autoridade|overconfiden|consenso|consensus|aditiv|additive|illusion of control|correlation neglect|myopic", "flags": "i", "min": 3, "description": "nomeia pelo menos 3 vieses (tratamento completo, one-way door)" },
+        { "pattern": "revers|two-way|one-way|irrevers", "flags": "i", "min": 1, "description": "reconhece que é irreversível" }
+      ]
+    },
+    {
+      "id": "pos-two-way-door",
+      "prompt": "Tô pensando em trocar a lib de formatação de datas do projeto (date-fns por dayjs). Dá pra reverter fácil se não gostar. Vale a pena?",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "pressiona a decisão em vez de trocar a lib (workspace limpo)" },
+        { "pattern": "revers|two-way|f[áa]cil de desfazer|barato de desfazer", "flags": "i", "min": 1, "description": "reconhece que é reversível / two-way door" },
+        { "pattern": "\\?", "max": 12, "description": "versão curta: interrogações bem abaixo do checklist completo (calibrado: 8 observado vs 32 no one-way-door)" }
+      ]
+    },
+    {
+      "id": "pos-gut-feeling",
+      "prompt": "Sinto que a gente devia reescrever esse serviço do zero em vez de refatorar. Parece a coisa certa a se fazer.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "pressiona o sentimento em vez de começar a reescrever" },
+        { "pattern": "vi[ée]s|bias|status quo|aditiv|additive|golden hammer|functional fixed", "flags": "i", "min": 1, "description": "nomeia um viés plausível (status quo / additive / functional fixedness)" }
+      ]
+    },
+    {
+      "id": "pos-authority",
+      "prompt": "O arquiteto sênior falou pra usarmos CQRS nesse módulo. Vou seguir a recomendação dele.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "pressiona a recomendação em vez de implementar CQRS" },
+        { "pattern": "autoridade|authority", "flags": "i", "min": 1, "description": "nomeia Authority Bias" },
+        { "pattern": "m[ée]rito|problema.*resolv|design.*resolv", "flags": "i", "min": 1, "description": "pergunta se a solução resolve o problema real, não só quem sugeriu" }
+      ]
+    },
+    {
+      "id": "pos-team-consensus",
+      "prompt": "Todo mundo do time concorda que devemos usar Kafka em vez de SQS pra fila de eventos. Vou fechar essa decisão.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "pressiona o consenso em vez de fechar a decisão" },
+        { "pattern": "consenso|consensus|correlation neglect|independente|independent", "flags": "i", "min": 1, "description": "questiona se o consenso é genuíno/independente" }
+      ]
+    },
+    {
+      "id": "pos-adr",
+      "prompt": "Escrevi um ADR decidindo que vamos adotar event sourcing no módulo de pagamentos. Pode revisar e finalizar?",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "roda o check de viés antes de finalizar o ADR" },
+        { "pattern": "vi[ée]s|bias|adr|debiasing check", "flags": "i", "min": 1, "description": "menciona o check de vieses no contexto do ADR" }
+      ]
+    },
+    {
+      "id": "neg-trivial-naming",
+      "prompt": "Devo nomear a variável de 'userCount' ou 'totalUsers'?",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "vi[ée]s|bias|checklist|five-step|debiasing check", "flags": "i", "negate": true, "description": "NÃO abre checklist de viés pra decisão trivial" }
+      ]
+    },
+    {
+      "id": "neg-factual",
+      "prompt": "Qual a diferença entre HTTP 301 e 302?",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "vi[ée]s|bias|checklist|five-step|debiasing check", "flags": "i", "negate": true, "description": "NÃO trata pergunta factual como decisão" }
+      ]
+    },
+    {
+      "id": "neg-bugfix",
+      "prompt": "Tem um bug: o botão de logout não redireciona pra tela de login. Debuga e corrige.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "vi[ée]s|bias|checklist|five-step|debiasing check", "flags": "i", "negate": true, "description": "NÃO trata bug fix como decisão a pressionar" }
+      ]
+    },
+    {
+      "id": "neg-just-do-it",
+      "prompt": "Já decidi, sem discussão: vamos usar Postgres. Só configura a conexão, não precisa questionar.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "vi[ée]s|bias|checklist|five-step|debiasing check", "flags": "i", "negate": true, "description": "respeita 'já decidi, não questiona'" }
+      ]
+    },
+    {
+      "id": "neg-cross-interviews",
+      "prompt": "Me ajuda a construir um app de controle de finanças pessoais do zero.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "vi[ée]s|bias|checklist|five-step|debiasing check", "flags": "i", "negate": true, "description": "NÃO é território do debiasing — formato ainda não decidido (é território da interviews)" }
+      ]
+    }
+  ]
+}
