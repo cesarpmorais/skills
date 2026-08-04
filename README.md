@@ -85,7 +85,11 @@ secret:
 - **Settings → Secrets and variables → Actions → New repository secret**
 - Name: `OPENAI_API_KEY` — an OpenAI API key from [platform.openai.com](https://platform.openai.com), used by `codex login --with-api-key` for headless auth (no interactive login)
 
-Results from each run are attached as a workflow artifact. Failed and errored trials
+Each selected skill runs as its own parallel job (a matrix over the selected list), so
+wall-clock time tracks the slowest single skill rather than the sum of all of them —
+run sequentially, 4 skills blew past the 30-minute job limit.
+
+Results are attached per skill as `eval-results-<skill>` artifacts. Failed and errored trials
 keep their **full** transcript in those results; passing ones are truncated. Checks run
 against the whole transcript, so truncating a failure would hide the very text that
 tripped the check.

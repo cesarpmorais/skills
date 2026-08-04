@@ -29,9 +29,12 @@ env:
   EVAL_MODEL: gpt-5.4-mini
 
 jobs:
-  evals:
+  # Decide which skills need evaluating, and emit the list as a JSON array so the
+  # eval job can fan out over it as a matrix.
+  select:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    outputs:
+      skills: ${{ steps.select.outputs.skills }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,29 +77,41 @@ jobs:
               skills="$(echo $picked | xargs || true)"
             fi
           fi
-          echo "skills=$skills" >> "$GITHUB_OUTPUT"
-          if [ -n "$skills" ]; then
-            echo "Will eval: $skills"
-          else
-            echo "No changed skill has an eval set — nothing to run."
-          fi
+          # Split explicitly rather than relying on unquoted word-splitting, so the
+          # matrix gets ["a","b"] and never a single ["a b"] element.
+          read -ra skill_arr <<< "$skills"
+          skills_json="$(jq -n -c --args '$ARGS.positional' -- "${skill_arr[@]}")"
+          echo "skills=$skills_json" >> "$GITHUB_OUTPUT"
+          echo "Will eval: $skills_json"
+
+  # One job per skill, in parallel. Running them sequentially in a single job blew
+  # past the 30-minute limit once the library reached 4 skills: ~40 cases x 3 trials
+  # x ~21s is over 40 minutes of wall clock. Fanning out keeps each job near the
+  # slowest single skill instead of the sum of all of them.
+  evals:
+    needs: select
+    if: needs.select.outputs.skills != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false  # one skill failing must not cancel the others' results
+      matrix:
+        skill: ${{ fromJSON(needs.select.outputs.skills) }}
+    steps:
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        if: steps.select.outputs.skills != ''
         with:
           node-version: "20"
 
       - uses: actions/setup-python@v5
-        if: steps.select.outputs.skills != ''
         with:
           python-version: "3.11"
 
       - name: Install Codex CLI
-        if: steps.select.outputs.skills != ''
         run: npm install -g @openai/codex
 
       - name: Log in to Codex (headless, API key)
-        if: steps.select.outputs.skills != ''
         env:
           # Add this as a repo secret: Settings -> Secrets and variables -> Actions.
           # This is an OpenAI API key (from platform.openai.com), not a Claude token.
@@ -104,14 +119,13 @@ jobs:
         run: printenv OPENAI_API_KEY | codex login --with-api-key
 
       - name: Install repo skills so Codex can load them
-        if: steps.select.outputs.skills != ''
         # The eval runs each trial in an isolated empty tempdir, so Codex only sees
         # user-level skills — and its user-level dir is $HOME/.agents/skills (per
         # https://learn.chatgpt.com/docs/build-skills). Without this, the skill under
         # test is never loaded: the agent builds instead of triggering, which both
-        # fails the eval and makes it slow. Install ALL repo skills (not just the
-        # ones under test) to match the "whole library loaded" practice — it catches
-        # cross over-triggering between skills.
+        # fails the eval and makes it slow. Install ALL repo skills (not just the one
+        # under test) to match the "whole library loaded" practice — it catches cross
+        # over-triggering between skills.
         #
         # COPY, don't symlink. Under --dangerously-bypass-approvals-and-sandbox the
         # agent can write anywhere, and a symlink would let it edit the real checkout:
@@ -127,33 +141,23 @@ jobs:
           done
           ls -la "$HOME/.agents/skills"
 
-      - name: Run evals for the selected skills
-        if: steps.select.outputs.skills != ''
+      - name: Run evals for ${{ matrix.skill }}
         env:
           PYTHONUNBUFFERED: "1"  # stream per-trial progress live into the CI log
-          SKILLS: ${{ steps.select.outputs.skills }}
         run: |
-          set -e
-          status=0
-          for skill in $SKILLS; do
-            echo "::group::evals — $skill"
-            # --dangerously-bypass-approvals-and-sandbox: the Actions runner is
-            #   already an isolated ephemeral VM, and Codex's own bubblewrap
-            #   sandbox can't set up its network namespace there
-            #   ("bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted"),
-            #   which blocked the agent from writing files. Bypassing the inner
-            #   sandbox lets it actually act (and removes the retry hangs).
-            # --skip-git-repo-check: each trial runs in a fresh, empty tempdir
-            #   (by design, for a clean workspace), never a git repo.
-            python3 run_evals.py "$skill" --trials 3 \
-              --harness-cmd "codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -m $EVAL_MODEL {prompt}" \
-              || status=1
-            echo "::endgroup::"
-          done
-          exit $status
+          # --dangerously-bypass-approvals-and-sandbox: the Actions runner is already
+          #   an isolated ephemeral VM, and Codex's own bubblewrap sandbox can't set
+          #   up its network namespace there ("bwrap: loopback: Failed RTM_NEWADDR:
+          #   Operation not permitted"), which blocked the agent from writing files.
+          #   Bypassing the inner sandbox lets it actually act (and removes the retry
+          #   hangs). See the README for what this costs in isolation guarantees.
+          # --skip-git-repo-check: each trial runs in a fresh, empty tempdir (by
+          #   design, for a clean workspace), never a git repo.
+          python3 run_evals.py "${{ matrix.skill }}" --trials 3 \
+            --harness-cmd "codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -m $EVAL_MODEL {prompt}"
 
       - name: Verify checkout stayed clean
-        if: always() && steps.select.outputs.skills != ''
+        if: always()
         # Tripwire for the copy-not-symlink measure above. The sandbox bypass means
         # "workspace_clean" only proves the agent didn't write in the tempdir being
         # watched — not that it didn't write anywhere. If it reached tracked files,
@@ -171,6 +175,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: eval-results
-          path: "*/evals/results/**"
+          name: eval-results-${{ matrix.skill }}  # must be unique per matrix job
+          path: "${{ matrix.skill }}/evals/results/**"
           if-no-files-found: ignore
