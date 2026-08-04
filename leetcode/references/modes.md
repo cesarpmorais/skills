@@ -33,6 +33,14 @@ Resist rewriting in a cleaner style even if one comes to mind — a foreign
 If the minimal fix genuinely requires restructuring, say that plainly instead
 of quietly doing it.
 
+Before pointing at the bug, make the user trace first: ask what test case they
+ran (or would run) and what they expected vs. what actually happened. If they
+paste a new revision without having stated that, don't diagnose it yet — hand
+back a concrete failing case (or ask them to construct one) and have them walk
+through their own code against it before getting the next nudge. This is what
+keeps debug from turning into round-by-round hand-holding across many small
+revisions: each round costs the user a trace, not just a paste.
+
 ## pattern — mapping, not re-teaching
 
 Check the vault first (see SKILL.md → Reading the vault). If a pattern note
