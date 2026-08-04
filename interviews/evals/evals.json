@@ -84,6 +84,16 @@
         { "type": "files", "workspace_clean": true, "description": "não escreve código (nem entrevista nem debiasing constroem)" },
         { "pattern": "fonte da verdade|source of truth|s[íi]ncrono|ass[íi]ncrono|async|offline|modelo de dados|data model|fronteira|boundar", "flags": "i", "negate": true, "description": "NÃO abre entrevista de arquitetura — a decisão já existe, território é do debiasing" }
       ]
+    },
+    {
+      "id": "pos-not-stolen-by-knowledge",
+      "prompt": "Finalmente entendi como estruturar cache distribuído depois de ler sobre o assunto — agora me ajuda a construir um sistema de cache pro nosso backend, o formato ainda tá em aberto.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "entrevistou em vez de escrever código (workspace limpo)" },
+        { "pattern": "\\?", "min": 3, "description": "a frase de 'entendi' não desvia do trabalho real: ainda entrevista" },
+        { "pattern": "arquitetura|architecture|escala|scale|estado|state|fronteira|boundar|s[íi]ncrono|ass[íi]ncrono|async|invalida|ttl|trade", "flags": "i", "min": 1, "description": "toca em decisão de arquitetura de cache" }
+      ]
     }
   ]
 }

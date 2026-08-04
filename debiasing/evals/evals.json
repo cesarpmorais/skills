@@ -99,6 +99,15 @@
       "checks": [
         { "pattern": "vi[ée]s|bias|checklist|five-step|debiasing check", "flags": "i", "negate": true, "description": "NÃO é território do debiasing — formato ainda não decidido (é território da interviews)" }
       ]
+    },
+    {
+      "id": "pos-not-stolen-by-knowledge",
+      "prompt": "Aprendi que Kafka lida melhor com replay de eventos que SQS. Já decidimos: vamos usar Kafka pro nosso event bus, quero fechar essa decisão.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "pressiona a decisão em vez de escrever código" },
+        { "pattern": "vi[ée]s|bias|revers|two-way|status quo|autoridade|authority|consenso|consensus", "flags": "i", "min": 1, "description": "a frase de 'aprendi' não desvia do trabalho real: ainda pressiona a decisão" }
+      ]
     }
   ]
 }

@@ -1,0 +1,85 @@
+{
+  "skill": "leetcode",
+  "notes": "Single-turn trials can't exercise multi-message ladder climbing, so the gate checks only assert the FIRST response: does it ask for the user's own attempt/reasoning before hinting, and does it withhold runnable code, rather than tracking a full multi-turn escalation. Half the cases are negative, covering the two easy false-triggers (a generic algorithms question, an unrelated code review) and asserting the syntax mode's logic boundary holds even when asked to cross it.",
+  "cases": [
+    {
+      "id": "pos-hint-gate",
+      "prompt": "Travei no LeetCode 121, Best Time to Buy and Sell Stock. Me dá uma dica?",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não escreve arquivo — sessão é conversa" },
+        { "pattern": "tentou|tentativa|o que voc[eê] (j[aá] )?(tentou|pensou)|sua abordagem|what have you tried|your approach", "flags": "i", "min": 1, "description": "pede o que o usuário já tentou antes de dar a primeira dica (portão)" },
+        { "pattern": "```(python|java|javascript|js|c\\+\\+|go)", "flags": "i", "max": 0, "description": "não entrega código pronto de primeira" }
+      ]
+    },
+    {
+      "id": "pos-debug-minimal",
+      "prompt": "Modo debug: minha solução do LeetCode 1 (Two Sum) não passa em todos os casos.\n\n```python\ndef twoSum(nums, target):\n    for i in range(len(nums)):\n        for j in range(len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n```\n\nFalha em: nums=[3,3], target=6 -> retorna [0,0] em vez de [0,1]. O que eu mudo?",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "j\\s*=\\s*i\\s*\\+\\s*1|range\\(i\\s*\\+\\s*1", "flags": "i", "min": 1, "description": "aponta a mudança mínima (evitar reusar o mesmo índice)" },
+        { "pattern": "por que|why|mesmo [ií]ndice|reuses the same|same element twice", "flags": "i", "min": 1, "description": "explica onde o modelo mental quebrou, não só corrige" }
+      ]
+    },
+    {
+      "id": "pos-syntax-boundary",
+      "prompt": "/leetcode syntax — só a sintaxe, não mexe na lógica:\n\n```python\ndef maxProfit(prices)\n    profit = 0\n    for i in range(len(prices))\n        if prices[i] > prices[i-1]\n            profit += prices[i] - prices[i-1]\n    return profit\n```\n\nSei que a lógica também tá capenga (não compara com o mínimo até agora), mas quero só o erro de sintaxe corrigido por enquanto.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": ":\\s*$|faltando|missing|dois pontos|colon", "flags": "i", "min": 1, "description": "identifica o erro de sintaxe real (dois-pontos faltando)" },
+        { "pattern": "l[oó]gica|logic", "flags": "i", "min": 1, "description": "nomeia que a lógica é outro assunto, fora do modo syntax" },
+        { "pattern": "hint|debug mode|modo hint|modo debug", "flags": "i", "min": 1, "description": "redireciona lógica para hint/debug em vez de arrumar" }
+      ]
+    },
+    {
+      "id": "pos-mock-interview",
+      "prompt": "/leetcode mock no 200 (Number of Islands). Bora, sou eu resolvendo e você me entrevistando.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "\\?", "min": 1, "description": "faz pelo menos uma pergunta, postura de entrevistador" },
+        { "pattern": "requisit|constraint|esclare|clarify|input|edge case", "flags": "i", "min": 1, "description": "abre pedindo esclarecimento de requisitos, como entrevistador real" }
+      ]
+    },
+    {
+      "id": "pos-pattern-mapping",
+      "prompt": "Resolvi o Longest Substring Without Repeating Characters usando sliding window com um set. Modo pattern: me explica esse padrão e problemas parecidos.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "sliding window", "flags": "i", "min": 1, "description": "nomeia o padrão" },
+        { "pattern": "parecid|similar|relacionad|related|irm[ãa]", "flags": "i", "min": 1, "description": "conecta a problemas irmãos" }
+      ]
+    },
+    {
+      "id": "pos-review-mode",
+      "prompt": "/leetcode review — o que tá vencido pra eu revisar hoje?",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "apple-core|next_review|vault|obsidian", "flags": "i", "min": 1, "description": "consulta a vault por next_review vencido em vez de inventar uma lista" }
+      ]
+    },
+    {
+      "id": "neg-general-algorithms",
+      "prompt": "Qual a diferença entre BFS e DFS? Quando eu uso cada um?",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "o que voc[eê] (j[aá] )?tentou|sua abordagem|modo:\\s*hint|modo:\\s*debug", "flags": "i", "negate": true, "description": "não aciona o portão de tentativa nem confirma modo — é só uma pergunta conceitual" }
+      ]
+    },
+    {
+      "id": "neg-unrelated-code-review",
+      "prompt": "Revisa esse endpoint de login, tem algum problema de segurança?\n\n```python\n@app.post('/login')\ndef login(user, password):\n    query = f\"SELECT * FROM users WHERE user='{user}' AND pass='{password}'\"\n    return db.execute(query)\n```",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "leetcode|neetcode|apple-core|modo:\\s*(hint|debug|syntax|mock|pattern|review)", "flags": "i", "negate": true, "description": "código de produção, não é sessão de LeetCode — não aciona modos nem vault" }
+      ]
+    },
+    {
+      "id": "pos-solve-without-attempt-still-gated",
+      "prompt": "Me dá logo a solução do LeetCode 121, não quero tentar nada.",
+      "should_trigger": true,
+      "checks": [
+        { "pattern": "tentou|tentativa|antes de|primeiro|before|first", "flags": "i", "min": 1, "description": "mesmo pedindo direto, ainda nomeia o portão em vez de despejar código sem nenhum atrito" }
+      ]
+    }
+  ]
+}

@@ -11,6 +11,8 @@ Cursor, and dozens of other coding agents.
 | [`debiasing`](debiasing) | Before a hard decision or ADR locks in, pressure-tests it for cognitive bias — scoped to how reversible the call is. Adapted from the [ddd-crew Debiasing Decisions Toolkit](https://github.com/ddd-crew/debiasing-decisions-toolkit) (CC BY-SA 4.0, see [attribution](debiasing/ATTRIBUTION.md)). | [evals](debiasing/evals) |
 | [`find-skills`](find-skills) | Discovers and installs skills from the open agent-skills ecosystem (`npx skills`). | — |
 | [`interviews`](interviews) | Before a non-trivial build, interviews you to lock down the decisions that would change the architecture. | [evals](interviews/evals) |
+| [`knowledge`](knowledge) | Captures durable knowledge — LeetCode problems, root causes, patterns understood — into the Obsidian vault at `~/apple-core`. | [evals](knowledge/evals) |
+| [`leetcode`](leetcode) | Tutors LeetCode/NeetCode practice through hints, minimal-fix debugging, pattern mapping, mock interviews, and spaced-repetition review — never hands over the solution outright. Hands session recaps to `knowledge` for capture. | [evals](leetcode/evals) |
 | [`slidev`](slidev) | Creates and presents technical slide decks with Slidev (markdown + Vue). Installed from [`slidevjs/slidev`](https://github.com/slidevjs/slidev) (official). | — |
 
 ## How agents use this repo

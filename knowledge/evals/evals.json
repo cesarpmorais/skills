@@ -1,0 +1,91 @@
+{
+  "skill": "knowledge",
+  "notes": "Trigger-heavy proactive skill with two failure modes: (a) not firing when the conversation clearly produced durable knowledge, and (b) firing on passing explanations, on questions still being asked, or on territory owned by `interviews` / `debiasing`. Half the cases are negative, and two of those are cross-trigger boundaries against the sibling skills. Positives assert Obsidian idioms in the draft (properties, wikilinks, collapsed callout) and correct folder placement, plus that the agent asks before writing — the confirm-before-write step is also what keeps eval runs from polluting the real vault, since the vault path is absolute and outside the trial tempdir. The workspace_clean check therefore proves something narrower but real: the agent must not create a vault or notes in the current directory.",
+  "kb_vocab": "reference only: (apple-core|obsidian|vault|knowledge base)",
+  "cases": [
+    {
+      "id": "pos-leetcode-solved",
+      "prompt": "Resolvi o LeetCode 3, longest substring without repeating characters, usando sliding window com um set. Salva isso na knowledge base.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não cria vault nem nota no diretório atual" },
+        { "pattern": "leetcode/problems|problems/", "flags": "i", "min": 1, "description": "coloca em leetcode/problems" },
+        { "pattern": "\\[\\[", "min": 1, "description": "usa wikilink do Obsidian" },
+        { "pattern": "\\[!success\\]-|\\[!\\w+\\]-", "min": 1, "description": "solução em callout dobrado (fechado)" },
+        { "pattern": "sliding window", "flags": "i", "min": 1, "description": "liga ao padrão correto" }
+      ]
+    },
+    {
+      "id": "pos-explicit-knowledge",
+      "prompt": "Descobri que o Postgres não usa índice quando a coluna tem cast implícito na query — por isso aquele SELECT estava lento. Guarda esse knowledge.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não escreve no diretório atual" },
+        { "pattern": "apple-core|obsidian|vault|inbox", "flags": "i", "min": 1, "description": "mira a vault do Obsidian" },
+        { "pattern": "^---|tags:|created:", "flags": "i", "min": 1, "description": "monta frontmatter de properties" },
+        { "pattern": "\\?|confirm|posso|quer que|antes de (gravar|salvar|escrever)", "flags": "i", "min": 1, "description": "confirma antes de gravar" }
+      ]
+    },
+    {
+      "id": "pos-context-learning",
+      "prompt": "Ah, agora entendi por que o container morria: o healthcheck batia na porta errada, então o orquestrador matava antes da app subir.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não escreve no diretório atual" },
+        { "pattern": "apple-core|obsidian|vault|knowledge base|nota|note", "flags": "i", "min": 1, "description": "reconhece conhecimento adquirido sem a palavra-gatilho" },
+        { "pattern": "\\?|confirm|posso|quer que", "flags": "i", "min": 1, "description": "confirma antes de gravar (inferência, não comando)" }
+      ]
+    },
+    {
+      "id": "pos-pattern-note",
+      "prompt": "Sacei o padrão two pointers: quando o array está ordenado e eu preciso achar um par, dá pra convergir os índices em vez de fazer O(n²). Salva na KB.",
+      "should_trigger": true,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não escreve no diretório atual" },
+        { "pattern": "patterns/|padr(ã|a)o|pattern", "flags": "i", "min": 1, "description": "trata como nota de padrão, não de problema" },
+        { "pattern": "\\[\\[", "min": 1, "description": "usa wikilink" }
+      ]
+    },
+    {
+      "id": "neg-still-asking",
+      "prompt": "Como funciona o padrão sliding window? Ainda não entendi direito quando usar.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "apple-core|obsidian|vault|frontmatter", "flags": "i", "negate": true, "description": "responde a dúvida, não cria nota (ainda não aprendeu)" }
+      ]
+    },
+    {
+      "id": "neg-code-edit",
+      "prompt": "Renomeia a função `calcTotal` pra `calculateOrderTotal` no arquivo billing.ts.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "apple-core|obsidian|vault|knowledge base", "flags": "i", "negate": true, "description": "edição de código não vira nota"}
+      ]
+    },
+    {
+      "id": "neg-cross-interviews",
+      "prompt": "Me ajuda a construir um app de controle de finanças pessoais.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "apple-core|obsidian|vault|knowledge base", "flags": "i", "negate": true, "description": "território da interviews, não captura conhecimento" }
+      ]
+    },
+    {
+      "id": "neg-cross-debiasing",
+      "prompt": "Estou em dúvida entre Kafka e SQS pro nosso event bus. Acho que Kafka é o certo.",
+      "should_trigger": false,
+      "checks": [
+        { "pattern": "apple-core|obsidian|vault|knowledge base", "flags": "i", "negate": true, "description": "território da debiasing, não captura conhecimento" }
+      ]
+    },
+    {
+      "id": "neg-cross-leetcode-midsession",
+      "prompt": "Tô numa sessão de hint do leetcode pro problema 3 (Longest Substring). Você me deu a dica de nível 2, mencionou a família sliding window. Ah, saquei, é isso! Deixa eu tentar implementar antes de fechar a sessão.",
+      "should_trigger": false,
+      "checks": [
+        { "type": "files", "workspace_clean": true, "description": "não escreve no diretório atual" },
+        { "pattern": "apple-core|obsidian|vault|frontmatter|knowledge base", "flags": "i", "negate": true, "description": "sessão do leetcode ainda em progresso — não antecipa a captura antes do recap final dela" }
+      ]
+    }
+  ]
+}
