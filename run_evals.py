@@ -203,8 +203,13 @@ def main() -> int:
             failed = [c["description"] for c in chk_results if not c["passed"]]
             detail = f" — failed: {'; '.join(failed)}" if outcome == FAIL and failed else ""
             print(f"     trial {i + 1}/{args.trials}: {icon[outcome]} {outcome} ({dt:.0f}s){detail}")
+            # Keep the FULL transcript when a trial fails or errors: checks run
+            # against the whole thing, so truncating it hides the very text that
+            # tripped a check (a negated regex matching past the cutoff is then
+            # undiagnosable). Passing trials stay truncated to keep results small.
+            kept = transcript if outcome in (FAIL, ERROR) else transcript[:4000]
             trials.append({"trial": i, "outcome": outcome, "returncode": rc,
-                           "checks": chk_results, "files": files, "transcript": transcript[:4000]})
+                           "checks": chk_results, "files": files, "transcript": kept})
 
         if n_error:
             any_error = all_ok = False

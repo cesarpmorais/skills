@@ -69,7 +69,7 @@
     },
     {
       "id": "neg-just-build",
-      "prompt": "Constrói um endpoint GET /health que retorna 200 e {\"status\":\"ok\"}. Já está definido, só faz — não me pergunta nada.",
+      "prompt": "Cria um arquivo app.py com um endpoint Flask GET /health que retorna 200 e {\"status\":\"ok\"}. Já está definido, só faz — não me pergunta nada.",
       "should_trigger": false,
       "checks": [
         { "type": "files", "workspace_clean": false, "description": "construiu o endpoint em vez de entrevistar (workspace sujo)" },
@@ -82,7 +82,7 @@
       "should_trigger": false,
       "checks": [
         { "type": "files", "workspace_clean": true, "description": "não escreve código (nem entrevista nem debiasing constroem)" },
-        { "pattern": "fonte da verdade|source of truth|s[íi]ncrono|ass[íi]ncrono|async|offline|modelo de dados|data model|fronteira|boundar", "flags": "i", "negate": true, "description": "NÃO abre entrevista de arquitetura — a decisão já existe, território é do debiasing" }
+        { "pattern": "\\?", "max": 3, "description": "NÃO abre lote de entrevista — a decisão já existe, território é do debiasing (medido: análise de viés fica em 0-1 perguntas, entrevista real em 5-7)" }
       ]
     },
     {

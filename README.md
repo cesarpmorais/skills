@@ -85,7 +85,20 @@ secret:
 - **Settings → Secrets and variables → Actions → New repository secret**
 - Name: `OPENAI_API_KEY` — an OpenAI API key from [platform.openai.com](https://platform.openai.com), used by `codex login --with-api-key` for headless auth (no interactive login)
 
-Results from each run are attached as a workflow artifact.
+Results from each run are attached as a workflow artifact. Failed and errored trials
+keep their **full** transcript in those results; passing ones are truncated. Checks run
+against the whole transcript, so truncating a failure would hide the very text that
+tripped the check.
+
+> **Known limitation — what `workspace_clean` actually proves in CI.** The sandbox
+> bypass above removes *all* of Codex's sandboxing, not just its networking. A trial's
+> `workspace_clean` check therefore proves only "the agent wrote nothing in the tempdir
+> being watched" — not "the agent wrote nothing anywhere". This is not theoretical: an
+> agent once "fixed" a failing negative case by rewriting the tracked `SKILL.md` instead
+> of doing the task. Skills are now **copied** into `~/.agents/skills` rather than
+> symlinked (so stray writes hit a throwaway copy), and a post-run step warns if the
+> checkout came back dirty. Locally, where bubblewrap works, prefer
+> `-s workspace-write` over the bypass.
 
 ## Principles
 

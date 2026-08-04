@@ -34,7 +34,7 @@
     },
     {
       "id": "pos-authority",
-      "prompt": "O arquiteto sênior falou pra usarmos CQRS nesse módulo. Vou seguir a recomendação dele.",
+      "prompt": "O arquiteto sênior falou pra usarmos CQRS nesse módulo. Vou seguir a recomendação dele. O módulo já está em produção com vários consumidores, então mudar depois sairia caro.",
       "should_trigger": true,
       "checks": [
         { "type": "files", "workspace_clean": true, "description": "pressiona a recomendação em vez de implementar CQRS" },

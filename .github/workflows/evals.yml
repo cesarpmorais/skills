@@ -112,11 +112,18 @@ jobs:
         # fails the eval and makes it slow. Install ALL repo skills (not just the
         # ones under test) to match the "whole library loaded" practice — it catches
         # cross over-triggering between skills.
+        #
+        # COPY, don't symlink. Under --dangerously-bypass-approvals-and-sandbox the
+        # agent can write anywhere, and a symlink would let it edit the real checkout:
+        # this actually happened — an agent "solved" a failing neg- case by rewriting
+        # the tracked SKILL.md instead of doing the task. A copy keeps that damage
+        # confined to a throwaway directory.
         run: |
+          rm -rf "$HOME/.agents/skills"
           mkdir -p "$HOME/.agents/skills"
           for skill_md in */SKILL.md; do
             skill="$(dirname "$skill_md")"
-            ln -sfn "$PWD/$skill" "$HOME/.agents/skills/$skill"
+            cp -R "$PWD/$skill" "$HOME/.agents/skills/$skill"
           done
           ls -la "$HOME/.agents/skills"
 
@@ -144,6 +151,21 @@ jobs:
             echo "::endgroup::"
           done
           exit $status
+
+      - name: Verify checkout stayed clean
+        if: always() && steps.select.outputs.skills != ''
+        # Tripwire for the copy-not-symlink measure above. The sandbox bypass means
+        # "workspace_clean" only proves the agent didn't write in the tempdir being
+        # watched — not that it didn't write anywhere. If it reached tracked files,
+        # say so loudly rather than letting a silently-mutated skill explain a result.
+        run: |
+          dirty="$(git status --porcelain -- . ':(exclude)*/evals/results')"
+          if [ -n "$dirty" ]; then
+            echo "::warning::Tracked files changed during the eval run — an agent wrote outside its tempdir. Results above may not reflect the committed skills."
+            echo "$dirty"
+          else
+            echo "Checkout clean — no agent wrote outside its tempdir."
+          fi
 
       - name: Upload eval results
         if: always()
