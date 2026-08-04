@@ -22,7 +22,7 @@
       "checks": [
         { "type": "files", "workspace_clean": true, "description": "não escreve no diretório atual" },
         { "pattern": "apple-core|obsidian|vault|inbox", "flags": "i", "min": 1, "description": "mira a vault do Obsidian" },
-        { "pattern": "^---|tags:|created:", "flags": "i", "min": 1, "description": "monta frontmatter de properties" },
+        { "pattern": "^---|tags:|created:", "flags": "im", "min": 1, "description": "monta frontmatter de properties" },
         { "pattern": "\\?|confirm|posso|quer que|antes de (gravar|salvar|escrever)", "flags": "i", "min": 1, "description": "confirma antes de gravar" }
       ]
     },

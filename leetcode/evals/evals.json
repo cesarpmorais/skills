@@ -26,7 +26,7 @@
       "prompt": "/leetcode syntax — só a sintaxe, não mexe na lógica:\n\n```python\ndef maxProfit(prices)\n    profit = 0\n    for i in range(len(prices))\n        if prices[i] > prices[i-1]\n            profit += prices[i] - prices[i-1]\n    return profit\n```\n\nSei que a lógica também tá capenga (não compara com o mínimo até agora), mas quero só o erro de sintaxe corrigido por enquanto.",
       "should_trigger": true,
       "checks": [
-        { "pattern": ":\\s*$|faltando|missing|dois pontos|colon", "flags": "i", "min": 1, "description": "identifica o erro de sintaxe real (dois-pontos faltando)" },
+        { "pattern": "def\\s+maxProfit\\s*\\(\\s*prices\\s*\\)\\s*:", "min": 1, "description": "entrega o código com o dois-pontos corrigido (sinal determinístico, não depende de como narra)" },
         { "pattern": "l[oó]gica|logic", "flags": "i", "min": 1, "description": "nomeia que a lógica é outro assunto, fora do modo syntax" },
         { "pattern": "hint|debug mode|modo hint|modo debug", "flags": "i", "min": 1, "description": "redireciona lógica para hint/debug em vez de arrumar" }
       ]

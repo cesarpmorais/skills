@@ -86,7 +86,16 @@ def run_once(cmd: list[str], timeout: int) -> tuple[str, list[str], int]:
 
 
 def regex_check(check: dict, transcript: str) -> bool:
-    flags = re.IGNORECASE if "i" in check.get("flags", "") else 0
+    # "i" = ignore case, "m" = multiline (^ and $ match at line boundaries).
+    # Without "m", a pattern like `:\s*$` silently matches only at the very end of
+    # the transcript, which reads as "never" — an easy way to write a check that
+    # can never pass. Declare "m" when anchoring to lines.
+    spec = check.get("flags", "")
+    flags = 0
+    if "i" in spec:
+        flags |= re.IGNORECASE
+    if "m" in spec:
+        flags |= re.MULTILINE
     n = len(re.findall(check["pattern"], transcript, flags))
     if check.get("negate"):
         return n == 0
