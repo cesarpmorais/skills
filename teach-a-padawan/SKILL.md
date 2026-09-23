@@ -160,7 +160,7 @@ For a file-layout change:
 ```diff
  src/
  ├── commands/
-+│   └── show-me.ts       # expands the slash command
++│   └── run-skill.ts     # expands the slash command
  ├── sessions/
 -└── transport.ts
 +└── transport/
@@ -204,8 +204,8 @@ function expandSkill(command: string): string {
 - For a visual UI, layout, state comparison, or concept too dense for plain text, write one focused HTML file — a diagram, an infographic, or a short slide deck, whichever fits the point. Match the product's colors, type, spacing, and components; use real labels and data; support desktop and mobile. Then open it for the user, when the environment has a launcher for it:
 
 ```
-Bash(open path/to/show-me-{description}.html)     # macOS
-Bash(xdg-open path/to/show-me-{description}.html)  # Linux
+Bash(open path/to/teach-a-padawan-{description}.html)     # macOS
+Bash(xdg-open path/to/teach-a-padawan-{description}.html)  # Linux
 ```
 
 Where no launcher exists, hand over the path and let the user open it.
