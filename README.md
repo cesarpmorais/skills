@@ -14,6 +14,7 @@ Cursor, and dozens of other coding agents.
 | [`knowledge`](knowledge) | Captures durable knowledge — LeetCode problems, root causes, patterns understood — into the Obsidian vault at `~/apple-core`. | [evals](knowledge/evals) |
 | [`leetcode`](leetcode) | Tutors LeetCode/NeetCode practice through hints, minimal-fix debugging, pattern mapping, mock interviews, and spaced-repetition review — never hands over the solution outright. Hands session recaps to `knowledge` for capture. | [evals](leetcode/evals) |
 | [`slidev`](slidev) | Creates and presents technical slide decks with Slidev (markdown + Vue). Installed from [`slidevjs/slidev`](https://github.com/slidevjs/slidev) (official). | — |
+| [`teach-a-padawan`](teach-a-padawan) | Teaches a complex topic or system concept-first, one topic at a time, checking your depth before starting and leaning on visuals, so you can make your own decisions about it. | — |
 
 ## How agents use this repo
 
